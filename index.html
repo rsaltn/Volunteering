@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Volunteering in KZ — Static React Site</title>
+    <link rel="stylesheet" href="./styles.css"/>
+    <meta name="description" content="Discover volunteering ideas across Kazakhstan. Categories, regions, sample perks, and a simple opportunity finder."/>
+  </head>
+  <body>
+    <nav class="nav">
+      <div class="container bar">
+        <div class="logo"><span class="dot"></span> Volunteering in KZ</div>
+        <div class="links">
+          <a class="link" href="#home">Home</a>
+          <a class="link" href="#perks">Perks</a>
+          <a class="link" href="#categories">Categories</a>
+          <a class="link" href="#regions">Regions</a>
+          <a class="link" href="#finder">Personalization</a>
+        </div>
+      </div>
+    </nav>
+
+    <header class="hero section" id="home">
+      <div class="container aside">
+        <div>
+          <div class="kicker">Join us to make the world more amazing</div>
+          <h1>Travel differently, connect locally</h1>
+          <p>
+            A student-built site inspired by your planning canvas. Explore popular volunteering categories, learn about key regions in Kazakhstan,
+            and use the simple finder to see example opportunities that match your interests.
+          </p>
+          <div class="cta">
+            <a class="btn primary" href="#finder">Try the Finder</a>
+            <a class="btn" href="#regions">See Regions</a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="pill">From the planning canvas</div>
+          <img src="./assets/canvas_1.png" alt="Planning canvas sample 1"/>
+          <div style="height:8px"></div>
+          <img src="./assets/canvas_2.png" alt="Planning canvas sample 2"/>
+        </div>
+      </div>
+    </header>
+
+    <main id="root" class="container"></main>
+
+    <!-- React + ReactDOM (CDN) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX-in-the-browser (fine for GitHub Pages demos) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+      const { useMemo, useState } = React;
+
+      /* ----------------------- Data ----------------------- */
+      const CATEGORIES = [
+        { id: 'sustainable', name: 'Sustainable projects', blurb: 'Eco-trails, lake clean-ups, recycling drives.' },
+        { id: 'farmstay',    name: 'Farmstay', blurb: 'Help on small farms: planting, harvesting, daily care.' },
+        { id: 'ngo',         name: 'NGO', blurb: 'Support local NGOs: fundraising, logistics, outreach.' },
+        { id: 'families',    name: 'Families', blurb: 'Assist with language practice and after‑school help.' },
+        { id: 'education',   name: 'Education', blurb: 'Tutoring ICT/English, robotics clubs, maker classes.' },
+        { id: 'animal',      name: 'Animal welfare', blurb: 'Shelter help, feeding, basic care, adoption days.' },
+        { id: 'disaster',    name: 'Disaster relief', blurb: 'Prepare aid kits, logistics, safety awareness.' },
+        { id: 'culture',     name: 'Cultural exchange', blurb: 'Heritage projects, museum assistance, events.' },
+      ];
+
+      const REGIONS = [
+        {
+          id: 'almaty',
+          name: 'Almaty Region',
+          img: './assets/canvas_3.png',
+          tags: ['mountains','eco','education'],
+          why: 'Eco‑tourism growth around the Tian Shan requires trail maintenance and leave‑no‑trace education.',
+        },
+        {
+          id: 'turkistan',
+          name: 'Turkistan Region',
+          img: './assets/canvas_1.png',
+          tags: ['heritage','culture','education'],
+          why: 'Historic sites attract visitors; cultural preservation and language tutoring are in high demand.',
+        },
+        {
+          id: 'eastkz',
+          name: 'East Kazakhstan',
+          img: './assets/canvas_2.png',
+          tags: ['lakes','forestry','animal'],
+          why: 'Altai lakes and forests benefit from litter clean‑ups and wildlife support initiatives.',
+        },
+      ];
+
+      // Demo opportunities for the personalization finder
+      const OPPS = [
+        { id: 1, title: 'Weekend Lake Clean-up', region: 'eastkz', category: 'sustainable', skills: ['cleanup','outdoors'], length: 'weekend' },
+        { id: 2, title: 'Robotics Club Mentor (IGCSE)', region: 'almaty', category: 'education', skills: ['teaching','ict'], length: '1-2w' },
+        { id: 3, title: 'Farmstay: Organic Apples', region: 'almaty', category: 'farmstay', skills: ['farming','outdoors'], length: '1m+' },
+        { id: 4, title: 'NGO Media & SMM Helper', region: 'turkistan', category: 'ngo', skills: ['design','smm'], length: '1-2w' },
+        { id: 5, title: 'Animal Shelter Assistant', region: 'eastkz', category: 'animal', skills: ['animal'], length: 'weekend' },
+        { id: 6, title: 'Heritage Tour Support', region: 'turkistan', category: 'culture', skills: ['language','events'], length: '1-2w' },
+      ];
+
+      /* ----------------------- Icons ----------------------- */
+      const Icon = ({path}) => (
+        <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="white" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d={path}/>
+        </svg>
+      );
+      const paths = {
+        globe: "M12 2a10 10 0 100 20 10 10 0 000-20Zm0 0c3 3 3 15 0 20m0-20C9 5 9 19 12 22M2 12h20",
+        users: "M16 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M8 7a4 4 0 110-8 4 4 0 010 8Zm8 8a4 4 0 10-8 0v2m8-10a4 4 0 110-8 4 4 0 010 8Z",
+        leaf:  "M3 21s5-1 9-5 5-9 5-9-5 1-9 5-5 9-5 9Z",
+        star:  "M12 2l3.1 6.3L22 9.2l-5 4.9L18.2 22 12 18.7 5.8 22 7 14.1 2 9.2l6.9-1L12 2Z",
+        clock: "M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0Z",
+      };
+
+      /* ----------------------- Components ----------------------- */
+      const Section = ({id, title, sub, children}) => (
+        <section className="section" id={id}>
+          <div className="container">
+            <h2>{title}</h2>
+            {sub && <p className="sub">{sub}</p>}
+            {children}
+          </div>
+        </section>
+      );
+
+      const Perks = () => (
+        <Section id="perks" title="What's included / Perks" sub="A sample list of benefits you can highlight to attract volunteers. Tailor these to your program.">
+          <div className="grid cols-3">
+            {[
+              { icon: paths.globe, title: 'Wide host network', text: 'Opportunities across multiple regions of Kazakhstan.' },
+              { icon: paths.users, title: 'Meet other volunteers', text: 'Make friends and build a travel buddy network.' },
+              { icon: paths.leaf,  title: 'Sustainable choices', text: 'Focus on eco‑friendly and community‑first projects.' },
+              { icon: paths.clock, title: 'Flexible durations', text: 'Weekend clean‑ups to month‑long teaching stints.' },
+              { icon: paths.star,  title: 'Reference letters', text: 'Offer personalized reference letters for active helpers.' },
+              { icon: paths.globe, title: 'Simple application', text: 'Clear descriptions, photos, and easy contact steps.' },
+            ].map((p, i) => (
+              <div key={i} className="card perk">
+                <Icon path={p.icon}/>
+                <div>
+                  <h3>{p.title}</h3>
+                  <p>{p.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      );
+
+      const Categories = () => (
+        <Section id="categories" title="Popular categories" sub="Short, skimmable descriptions like real web content.">
+          <div className="grid cols-3">
+            {CATEGORIES.map(cat => (
+              <div key={cat.id} className="card">
+                <div className="pill">Category</div>
+                <h3>{cat.name}</h3>
+                <p>{cat.blurb}</p>
+              </div>
+            ))}
+          </div>
+        </Section>
+      );
+
+      const Regions = () => (
+        <Section id="regions" title="Regions" sub="Pick 3 regions and explain why they need volunteering assistance.">
+          <div className="grid cols-3">
+            {REGIONS.map(r => (
+              <div className="card region-card" key={r.id}>
+                <img alt={r.name} src={r.img}/>
+                <h3 style={{marginTop: '10px'}}>{r.name}</h3>
+                <p>{r.why}</p>
+                <div className="meta">
+                  {r.tags.map(t => <span className="chip" key={t}>{t}</span>)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      );
+
+      const Finder = () => {
+        const [category, setCategory] = useState('any');
+        const [region, setRegion] = useState('any');
+        const [lengths, setLengths] = useState({weekend: true, '1-2w': true, '1m+': true});
+
+        const results = useMemo(() => {
+          return OPPS.filter(o => (category === 'any' || o.category === category) && (region === 'any' || o.region === region) && lengths[o.length]);
+        }, [category, region, lengths]);
+
+        const toggleLen = k => setLengths(s => ({...s, [k]: !s[k]}));
+
+        return (
+          <Section id="finder" title="Personalization" sub="Use the filters to quickly understand which opportunities match your strengths and availability.">
+            <div className="card">
+              <div className="filter-panel">
+                <strong>Category:</strong>
+                <select value={category} onChange={e => setCategory(e.target.value)}>
+                  <option value="any">Any</option>
+                  {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+                <strong>Region:</strong>
+                <select value={region} onChange={e => setRegion(e.target.value)}>
+                  <option value="any">Any</option>
+                  {REGIONS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                </select>
+                <strong>Length:</strong>
+                {['weekend','1-2w','1m+'].map(k => (
+                  <label key={k}><input type="checkbox" checked={lengths[k]} onChange={() => toggleLen(k)}/> {k}</label>
+                ))}
+              </div>
+              <div className="grid cols-2">
+                {results.map(o => {
+                  const cat = CATEGORIES.find(c => c.id === o.category);
+                  const reg = REGIONS.find(r => r.id === o.region);
+                  return (
+                    <div className="card opportunity" key={o.id}>
+                      <div className="thumb">
+                        <img alt={o.title} src={reg.img}/>
+                      </div>
+                      <div>
+                        <h3 style={{margin:'0 0 6px'}}>{o.title}</h3>
+                        <p style={{margin:'0 0 8px'}}>{cat?.name} • {reg?.name}</p>
+                        <div className="meta">
+                          <span className="chip">{o.length}</span>
+                          {o.skills.map(s => <span className="chip" key={s}>{s}</span>)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {results.length === 0 && (
+                  <div className="card"><p>No results. Try broadening your filters.</p></div>
+                )}
+              </div>
+            </div>
+          </Section>
+        );
+      };
+
+      const FinalTip = () => (
+        <Section id="tip" title="Final tip">
+          <div className="card">
+            <p><strong>Keep it skimmable:</strong> short paragraphs, clear visuals, and no more than 4 pages/sections for a first version.</p>
+          </div>
+        </Section>
+      );
+
+      const App = () => (
+        <div>
+          <Perks/>
+          <Categories/>
+          <Regions/>
+          <Finder/>
+          <FinalTip/>
+        </div>
+      );
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+    </script>
+
+    <footer class="footer">
+      <div class="container">
+        © <span id="year"></span> Volunteering in KZ · Built with React + GitHub Pages
+      </div>
+      <script>document.getElementById('year').textContent = new Date().getFullYear()</script>
+    </footer>
+  </body>
+</html>
